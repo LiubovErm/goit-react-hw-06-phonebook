@@ -1,15 +1,20 @@
 import { useState } from 'react';
-import { Label, Input, Button } from './Form.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { getContacts, addContact } from '../../redux/contactSlice';
 import { Box } from '../Box/Box';
+import { Label, Input, Button } from './Form.styled';
 import { nanoid } from 'nanoid'
-import PropTypes from 'prop-types';
+import Notiflix from 'notiflix';
 
-export function Form ({ onSubmit }) {
+export function Form () {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
 
   const nameInputId = nanoid();
   const telInputId = nanoid();
+
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
  
   const handleChange = event => {
     const { name, value } = event.currentTarget;
@@ -27,7 +32,16 @@ export function Form ({ onSubmit }) {
 
   const onSubmitForm = event => {
     event.preventDefault();
-    onSubmit({ name,number });
+    const newContact = {
+      id: nanoid(),
+      name,
+      number,
+    }
+
+    contacts.find(contact => contact.name.toLowerCase() === name.toLowerCase())
+      ? Notiflix.Notify.failure(`${name} is already in contacts`)
+      : dispatch(addContact(newContact));
+    
     reset();
   };
 
@@ -49,6 +63,8 @@ export function Form ({ onSubmit }) {
             value={name}   
             onChange={handleChange}
             id={nameInputId}
+            placeholder="Імя Прізвище"
+            autoComplete='off'
           />
         </Label>
         <Label htmlFor={telInputId}>
@@ -62,6 +78,8 @@ export function Form ({ onSubmit }) {
             value={number} 
             onChange={handleChange}
             id={telInputId}
+            placeholder="Номер телефона"
+            autoComplete='off'
           />
         </Label>
         <Button type="submit">Add contact</Button>
@@ -70,6 +88,3 @@ export function Form ({ onSubmit }) {
   }
 
 
-Form.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-};

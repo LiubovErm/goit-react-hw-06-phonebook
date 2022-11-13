@@ -1,26 +1,39 @@
-import PropTypes from 'prop-types';
-import { ContactList, ContactItem, Button } from './List.styled';
+import { useDispatch, useSelector } from 'react-redux';
+import { getContacts, getFilter, deleteContact } from '../../redux/contactSlice';
+import { ListItem } from '../ListItem/ListItem'
+import { ContactList, Message } from './List.styled';
 
-export const List = ({ contacts, onDeleteContact }) => (
+export const List = () => {
+  const dispatch = useDispatch();
+  const contacts = useSelector(getContacts);
+  const filter = useSelector(getFilter);
+
+  const onDeleteContact = contactId => dispatch(deleteContact(contactId));
+
+  const getVisibleContact = () => {
+    return contacts.filter(contact =>
+      contact.name.toLowerCase().includes(filter.toLowerCase())
+    );
+  };
+
+  const visibleContact = getVisibleContact();
+
+  return (
     <ContactList>
-      {contacts.map(({ id, name, number }) => (
-          <ContactItem key={id}>
-            {name}: {number}
-            <Button type = "button" onClick={() => {onDeleteContact(id)}}>
-              Delete
-            </Button>
-          </ContactItem>
-      ))}
+      {visibleContact.length > 0 ? (
+        visibleContact.map(({ id, name, number }) => {
+          return (
+            <ListItem
+              key={id}
+              contactId={id}
+              name={name}
+              number={number}
+              onClickRemove={onDeleteContact}
+            />
+          );
+        })
+      ) : (<Message>Нема нічого</Message>
+      )}
     </ContactList>
-);
-
-List.propTypes = {
-  contacts: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      number: PropTypes.string.isRequired,
-    })
-  ),
-  onDeleteContact: PropTypes.func.isRequired,
+  )
 };
